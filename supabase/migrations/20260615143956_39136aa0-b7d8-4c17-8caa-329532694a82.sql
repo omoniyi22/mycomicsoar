@@ -1,0 +1,1 @@
+CREATE POLICY "Admin manage covers" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'comic-covers' AND public.is_admin()) WITH CHECK (bucket_id = 'comic-covers' AND public.is_admin());

@@ -1,0 +1,90 @@
+# robots.txt for ComicSoar.com
+# Optimized for SEO and crawl efficiency
+
+User-agent: *
+Allow: /
+
+# ============================================
+# BLOCK SENSITIVE / PRIVATE PAGES
+# ============================================
+
+# Authentication pages (from sitemap) - FIXED: Disallow
+Allow: /auth
+
+# Admin and backend areas
+Disallow: /admin
+Disallow: /api
+Disallow: /dashboard
+Disallow: /wp-admin
+
+# E-commerce sensitive pages
+Disallow: /cart
+Disallow: /checkout
+Disallow: /wishlist
+Disallow: /account
+Disallow: /order
+Disallow: /payment
+
+# ============================================
+# BLOCK DUPLICATE / FILTER PAGES
+# ============================================
+
+# Block search and dynamic filters (these create duplicate content)
+Disallow: /search
+Disallow: /shop?*
+Disallow: /comics?*
+
+# Block dynamic sorting/filtering parameters
+Disallow: /*?*sort=
+Disallow: /*?*filter=
+Disallow: /*?*page=
+Disallow: /*?*category=
+
+# ============================================
+# BLOCK UTILITY AND MISC PAGES
+# ============================================
+
+# Temporary and test pages
+Disallow: /test
+Disallow: /dev
+Disallow: /temp
+Disallow: /staging
+
+# File types to avoid (search engines shouldn't index these)
+Disallow: /*.pdf$
+Disallow: /*.zip$
+Disallow: /*.rar$
+
+# ============================================
+# ALLOW CRAWLING OF IMPORTANT CONTENT
+# ============================================
+
+# Allow all comic pages (the main content you want indexed)
+Allow: /comics/
+Allow: /resizer
+
+# Allow static pages
+Allow: /$ 
+Allow: /shop$
+Allow: /support$
+
+# Allow support pages with ANY parameters (covers all tabs)
+Allow: /support?
+
+# Allow shop genre pages (if they show curated, unique content)
+# NOTE: Only include these if each genre page has unique content
+Allow: /shop?genre=Mystery$
+Allow: /shop?genre=Superhero$
+Allow: /shop?genre=Action%2FAdventures$
+
+# ============================================
+# CRAWL DELAY (optional - uncomment if needed)
+# ============================================
+
+# Crawl-delay: 1
+
+# ============================================
+# SITEMAP LOCATION
+# ============================================
+
+Sitemap: https://comicsoar.com/sitemap.xml

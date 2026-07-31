@@ -1,0 +1,125 @@
+// ─── Unified Download Button (supports portrait & landscape) ───
+
+function DownloadButton({ comicId }: { comicId: string }) {
+  const fn = useServerFn(getComicDownloadUrls);
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false); // true while fetching URLs OR downloading
+  const [open, setOpen] = useState(false);
+  const [urls, setUrls] = useState<{ portraitUrl: string | null; landscapeUrl: string | null; title: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const buttonRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  async function fetchUrls() {
+    if (urls) {
+      setOpen(!open);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await fn({ data: { comicId } });
+      setUrls(result);
+      setOpen(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load download links");
+      alert(error);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Open in new tab AND trigger download – keeps busy state
+  async function downloadAndOpen(url: string, filename: string) {
+    setBusy(true);
+    setOpen(false); // close dropdown
+
+    try {
+      // 1. Open the PDF in a new tab (for viewing)
+      window.open(url, '_blank');
+
+      // 2. Also trigger a download via fetch + blob (for saving)
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+
+      // Optionally update download count
+      await qc.invalidateQueries({ queryKey: ["account-overview"] });
+    } catch (err) {
+      console.error('Download error:', err);
+      // If fetch fails, fallback to just opening the URL (user can save manually)
+      window.open(url, '_blank');
+    } finally {
+      // Ensure busy is reset even if an error occurs
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="relative inline-block" ref={buttonRef}>
+      <button
+        onClick={fetchUrls}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-gold-soft disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+        PDF
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && urls && (
+        <div className="absolute right-0 mt-2 w-52 rounded-md border border-white/10 bg-card shadow-2xl z-50 p-1">
+          {urls.portraitUrl && (
+            <button
+              onClick={() => {
+                if (!busy) {
+                  downloadAndOpen(urls.portraitUrl!, `${urls.title || 'comic'}.pdf`);
+                }
+              }}
+              disabled={busy}
+              className="flex items-center gap-2 px-3 py-2 text-xs text-foreground rounded hover:bg-gold/10 hover:text-gold transition-colors w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Smartphone className="h-3.5 w-3.5" />
+              <span className="flex-1">Mobile (portrait)</span>
+            </button>
+          )}
+          {urls.landscapeUrl && (
+            <button
+              onClick={() => {
+                if (!busy) {
+                  downloadAndOpen(urls.landscapeUrl!, `${urls.title || 'comic'}.pdf`);
+                }
+              }}
+              disabled={busy}
+              className="flex items-center gap-2 px-3 py-2 text-xs text-foreground rounded hover:bg-gold/10 hover:text-gold transition-colors w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Monitor className="h-3.5 w-3.5" />
+              <span className="flex-1">Desktop (landscape)</span>
+            </button>
+          )}
+          {!urls.portraitUrl && !urls.landscapeUrl && (
+            <div className="px-3 py-2 text-xs text-muted-foreground">No PDF available</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

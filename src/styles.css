@@ -1,0 +1,229 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Vault & Quill — Dark Collector design system.
+ * Deep ink backgrounds, antique-gold accents, editorial typography.
+ * All colors use oklch. Tokens consumed via @theme inline.
+ */
+
+@theme inline {
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+
+  --shadow-glow: 0 0 60px -10px color-mix(in oklab, var(--gold) 35%, transparent);
+  --shadow-elegant: 0 30px 60px -30px color-mix(in oklab, black 80%, transparent),
+    0 18px 36px -18px color-mix(in oklab, var(--gold) 12%, transparent);
+}
+
+:root {
+  --radius: 0.5rem;
+
+  /* Dark collector palette */
+  --background: oklch(0.16 0.012 270);
+  /* #0E0E12 */
+  --foreground: oklch(0.94 0.005 95);
+  /* warm cream */
+  --ink: oklch(0.12 0.01 270);
+  /* darker than bg */
+  --ink-soft: oklch(0.22 0.015 270);
+  /* card */
+
+  --card: oklch(0.21 0.014 270);
+  /* #1A1A22 */
+  --card-foreground: oklch(0.94 0.005 95);
+  --popover: oklch(0.21 0.014 270);
+  --popover-foreground: oklch(0.94 0.005 95);
+
+  --gold: oklch(0.78 0.12 80);
+  /* #C9A14A antique gold */
+  --gold-soft: oklch(0.65 0.10 78);
+
+  --primary: oklch(0.78 0.12 80);
+  --primary-foreground: oklch(0.14 0.01 270);
+  --secondary: oklch(0.28 0.014 270);
+  --secondary-foreground: oklch(0.94 0.005 95);
+  --muted: oklch(0.24 0.012 270);
+  --muted-foreground: oklch(0.68 0.012 90);
+  --accent: oklch(0.30 0.018 80);
+  --accent-foreground: oklch(0.94 0.005 95);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.28 0.012 270);
+  --input: oklch(0.28 0.012 270);
+  --ring: oklch(0.78 0.12 80 / 0.5);
+
+  --chart-1: oklch(0.78 0.12 80);
+  --chart-2: oklch(0.60 0.15 220);
+  --chart-3: oklch(0.55 0.20 25);
+  --chart-4: oklch(0.65 0.18 300);
+  --chart-5: oklch(0.70 0.15 160);
+}
+
+.dark {
+  /* same palette: dark-first */
+  --background: oklch(0.16 0.012 270);
+  --foreground: oklch(0.94 0.005 95);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@utility text-gold {
+  color: var(--gold);
+}
+
+@utility bg-vignette {
+  background:
+    radial-gradient(60% 50% at 50% 0%, color-mix(in oklab, var(--gold) 10%, transparent) 0%, transparent 70%),
+    radial-gradient(40% 30% at 0% 100%, color-mix(in oklab, var(--gold) 6%, transparent) 0%, transparent 70%),
+    var(--background);
+}
+
+@utility border-gold-soft {
+  border-color: color-mix(in oklab, var(--gold) 30%, transparent);
+}
+
+@utility ring-gold {
+  --tw-ring-color: color-mix(in oklab, var(--gold) 50%, transparent);
+}
+
+@utility container-tight {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 72rem;
+  /* ~1152px — narrower, editorial feel */
+  padding-inline: 1.5rem;
+}
+
+
+/* Reader transition keyframes */
+@keyframes csJitter {
+  0% {
+    transform: translate(-14px, -10px) scale(1.015);
+    filter: blur(0.4px);
+  }
+
+  25% {
+    transform: translate(10px, 8px) scale(1.008);
+    filter: blur(0);
+  }
+
+  50% {
+    transform: translate(-7px, -5px) scale(1.004);
+  }
+
+  75% {
+    transform: translate(5px, 4px) scale(1.002);
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+.cs-jitter {
+  animation: csJitter 220ms cubic-bezier(0.22, 1, 0.36, 1) 1;
+}
+
+@keyframes csShake {
+  0% {
+    transform: translate(0, 0) scale(1.01);
+  }
+
+  15% {
+    transform: translate(-18px, 4px) scale(1.012);
+  }
+
+  30% {
+    transform: translate(16px, -3px) scale(1.01);
+  }
+
+  45% {
+    transform: translate(-12px, 2px);
+  }
+
+  60% {
+    transform: translate(9px, -2px);
+  }
+
+  75% {
+    transform: translate(-5px, 1px);
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+.cs-shake {
+  animation: csShake 320ms cubic-bezier(0.36, 0, 0.15, 1) 1;
+}
+
+
+@keyframes csFlash {
+  0% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+button {
+  cursor: pointer;
+}
