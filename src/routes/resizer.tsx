@@ -60,7 +60,7 @@ const ImageResizer: React.FC = () => {
   ];
 
   // ============================================
-  // IMAGE UPLOAD HANDLERS
+  // IMAGE UPLOAD HANDLERS 
   // ============================================
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>): void => {
