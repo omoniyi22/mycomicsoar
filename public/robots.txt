@@ -10,6 +10,7 @@ Allow: /
 
 # Authentication pages (from sitemap) - FIXED: Disallow
 Allow: /auth
+Allow: /resizer
 
 # Admin and backend areas
 Disallow: /admin
