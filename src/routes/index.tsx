@@ -731,5 +731,6 @@ function ReaderFeatures() {
         </Link>
       </div>
     </section>
+    
   );
 }
