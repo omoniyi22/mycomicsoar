@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ResizerRouteImport } from './routes/resizer'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ComicsSlugRouteImport } from './routes/comics.$slug'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedCartRouteImport } from './routes/_authenticated/cart'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
@@ -45,6 +47,11 @@ const ResizerRoute = ResizerRouteImport.update({
   path: '/resizer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -63,6 +70,11 @@ const ComicsSlugRoute = ComicsSlugRouteImport.update({
   id: '/comics/$slug',
   path: '/comics/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
 } as any)
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   id: '/library',
@@ -139,12 +151,14 @@ const AuthenticatedAdminAdminComicIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/blog': typeof BlogRouteWithChildren
   '/resizer': typeof ResizerRoute
   '/shop': typeof ShopRoute
   '/support': typeof SupportRoute
   '/account': typeof AuthenticatedAccountRoute
   '/cart': typeof AuthenticatedCartRoute
   '/library': typeof AuthenticatedLibraryRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/comics/$slug': typeof ComicsSlugRoute
   '/checkout/success': typeof AuthenticatedCheckoutSuccessRoute
   '/reader/$slug': typeof AuthenticatedReaderSlugRoute
@@ -159,12 +173,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/blog': typeof BlogRouteWithChildren
   '/resizer': typeof ResizerRoute
   '/shop': typeof ShopRoute
   '/support': typeof SupportRoute
   '/account': typeof AuthenticatedAccountRoute
   '/cart': typeof AuthenticatedCartRoute
   '/library': typeof AuthenticatedLibraryRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/comics/$slug': typeof ComicsSlugRoute
   '/checkout/success': typeof AuthenticatedCheckoutSuccessRoute
   '/reader/$slug': typeof AuthenticatedReaderSlugRoute
@@ -181,6 +197,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/blog': typeof BlogRouteWithChildren
   '/resizer': typeof ResizerRoute
   '/shop': typeof ShopRoute
   '/support': typeof SupportRoute
@@ -188,6 +205,7 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/cart': typeof AuthenticatedCartRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/comics/$slug': typeof ComicsSlugRoute
   '/_authenticated/checkout/success': typeof AuthenticatedCheckoutSuccessRoute
   '/_authenticated/reader/$slug': typeof AuthenticatedReaderSlugRoute
@@ -204,12 +222,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/blog'
     | '/resizer'
     | '/shop'
     | '/support'
     | '/account'
     | '/cart'
     | '/library'
+    | '/blog/$slug'
     | '/comics/$slug'
     | '/checkout/success'
     | '/reader/$slug'
@@ -224,12 +244,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/blog'
     | '/resizer'
     | '/shop'
     | '/support'
     | '/account'
     | '/cart'
     | '/library'
+    | '/blog/$slug'
     | '/comics/$slug'
     | '/checkout/success'
     | '/reader/$slug'
@@ -245,6 +267,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/blog'
     | '/resizer'
     | '/shop'
     | '/support'
@@ -252,6 +275,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/cart'
     | '/_authenticated/library'
+    | '/blog/$slug'
     | '/comics/$slug'
     | '/_authenticated/checkout/success'
     | '/_authenticated/reader/$slug'
@@ -268,6 +292,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BlogRoute: typeof BlogRouteWithChildren
   ResizerRoute: typeof ResizerRoute
   ShopRoute: typeof ShopRoute
   SupportRoute: typeof SupportRoute
@@ -298,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResizerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -325,6 +357,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/comics/$slug'
       preLoaderRoute: typeof ComicsSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
     }
     '/_authenticated/library': {
       id: '/_authenticated/library'
@@ -467,10 +506,21 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BlogRoute: BlogRouteWithChildren,
   ResizerRoute: ResizerRoute,
   ShopRoute: ShopRoute,
   SupportRoute: SupportRoute,

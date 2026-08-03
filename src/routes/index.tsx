@@ -43,13 +43,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Discover new releases, collectible hardcovers, manga, and creator-owned indies on Comicsoar. Subscribe to your favorite series and build your collection.",
+          "Discover new releases, collectible manga, and creator-owned indies on Comicsoar. Subscribe to your favorite series and build your collection.",
       },
       { property: "og:title", content: "Comicsoar — A Curated Comics Emporium" },
       {
         property: "og:description",
         content:
-          "New issues every Wednesday. Hardcovers worth the shelf space. Subscriptions, pull lists, and graded collectibles.",
+          "New issues every Wednesday. Comics worth the shelf space. Subscriptions, pull lists, and graded collectibles.",
       },
     ],
   }),
@@ -68,6 +68,10 @@ function Home() {
       <Hero picks={heroPicks} format={format} />
 
       <main className="container-tight space-y-28 mt-24">
+        {/* New: Quick Browse Section */}
+        {/* <QuickBrowse data={data} format={format} /> */}
+        {/* New: How It Works Section */}
+
         <section>
           <SectionHeader
             eyebrow="This Week"
@@ -77,6 +81,10 @@ function Home() {
           />
           <CardGrid items={data.newReleases} />
         </section>
+
+        <HowItWorks />
+        {/* New: Shop by Category Section */}
+        <ShopByCategory />
 
         <section>
           <SectionHeader eyebrow="Hot Right Now" title="Trending Comics" action="Browse all trending" />
@@ -103,6 +111,9 @@ function Home() {
       </main>
 
       <SiteFooter />
+      
+      {/* New: Mobile Shop CTA */}
+      <MobileShopCTA />
     </div>
   );
 }
@@ -134,14 +145,14 @@ function Hero({ picks, format }: { picks: Comic[]; format: (usd: number, prices?
             Delivered as e-books.
           </h1>
           <p className="mt-6 max-w-xl text-base md:text-lg text-muted-foreground">
-            ComicSoar is a 100% digital comic e-book store. Buy any issue, hardcover,
+            ComicSoar is a 100% digital comic e-book store. Buy any issue,
             manga, or indie original and read it instantly in your browser — or download
             the PDF to keep forever. No shipping. No waiting. Just ink on your screen.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/shop">
-              <button className="group inline-flex items-center gap-2 rounded-md bg-gold px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]">
-                Browse the store
+              <button className="group inline-flex items-center gap-2 rounded-md bg-gold px-8 py-4 text-base font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]">
+                Start browsing 12,400+ comics
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
             </Link>
@@ -228,6 +239,128 @@ function Hero({ picks, format }: { picks: Comic[]; format: (usd: number, prices?
         )}
       </div>
     </section>
+  );
+}
+
+// ---- Quick Browse Component ----
+function QuickBrowse({ data, format }: { data: any; format: (usd: number, prices?: any) => string }) {
+  const quickPicks = data.newReleases.slice(0, 6);
+  
+  return (
+    <section className="border-t border-border/40 pt-8">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <span className="text-xs uppercase tracking-[0.25em] text-gold">Start Browsing</span>
+          <h2 className="font-display text-2xl md:text-3xl mt-1">New this week</h2>
+        </div>
+        <Link 
+          to="/shop" 
+          className="text-sm text-gold hover:underline flex items-center gap-1"
+        >
+          View all <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {quickPicks.map((comic: Comic) => (
+          <Link to={`/comics/${comic.slug}`} key={comic.id}>
+            <div className="group cursor-pointer">
+              <div className="aspect-[2/3] rounded-md overflow-hidden border border-border/40 group-hover:border-gold-soft transition-all">
+                <img
+                  src={resolveCover(comic.cover_url)}
+                  alt={comic.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              </div>
+              <p className="mt-2 text-sm font-medium text-foreground truncate">{comic.title}</p>
+              <p className="text-xs font-mono text-gold">{format(comic.price, comic)}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ---- How It Works Component ----
+function HowItWorks() {
+  return (
+    <section className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8 border-t border-border/40">
+      {[
+        { icon: ShoppingBag, title: "1. Browse", desc: "Explore 12,400+ digital comics" },
+        { icon: Check, title: "2. Buy", desc: "Pay once, read forever" },
+        { icon: BookOpen, title: "3. Read", desc: "Instant access in browser or PDF" }
+      ].map((step) => (
+        <div key={step.title} className="flex items-center gap-4">
+          <div className="h-10 w-10 rounded-full bg-gold/10 flex items-center justify-center flex-shrink-0">
+            <step.icon className="h-5 w-5 text-gold" />
+          </div>
+          <div>
+            <p className="font-display text-sm">{step.title}</p>
+            <p className="text-xs text-muted-foreground">{step.desc}</p>
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+// ---- Shop by Category Component ----
+function ShopByCategory() {
+  const categories = [
+    { name: "Mystery", icon: "🔍", count: "1,200+", description: "Uncover thrilling tales" },
+    { name: "Adventures", icon: "⚔️", count: "2,500+", description: "Epic journeys await" },
+    { name: "Sci-Fi", icon: "🚀", count: "1,800+", description: "Explore the future" },
+    { name: "SuperHeroes", icon: "🦸", count: "3,100+", description: "Discover your hero" }
+  ];
+  
+  return (
+    <section className="py-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <span className="text-xs uppercase tracking-[0.25em] text-gold">Shop by Category</span>
+          <h2 className="font-display text-2xl md:text-3xl mt-1">Find your next read</h2>
+        </div>
+        <Link 
+          to="/shop" 
+          className="text-sm text-gold hover:underline flex items-center gap-1"
+        >
+          Browse all <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {categories.map((cat) => (
+          <Link to={`/shop?category=${cat.name.toLowerCase()}`} key={cat.name}>
+            <div className="group rounded-lg border border-border/40 p-6 text-center hover:border-gold-soft transition-all hover:shadow-glow bg-card/30 hover:bg-card/60">
+              <span className="text-4xl block mb-3">{cat.icon}</span>
+              <h4 className="font-display text-lg text-foreground group-hover:text-gold transition-colors">{cat.name}</h4>
+              <p className="text-xs text-muted-foreground mt-1">{cat.description}</p>
+              <p className="text-[10px] text-gold/70 mt-2">{cat.count} titles</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+
+// ---- Mobile Shop CTA Component ----
+function MobileShopCTA() {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border p-4 md:hidden z-50">
+      <div className="flex items-center justify-between max-w-md mx-auto">
+        <div>
+          <p className="text-xs text-muted-foreground">12,400+ titles</p>
+          <p className="text-sm font-medium">Start collecting today</p>
+        </div>
+        <Link to="/shop">
+          <button className="bg-gold text-primary-foreground px-6 py-2.5 rounded-md font-semibold text-sm flex items-center gap-2">
+            Browse <ShoppingBag className="h-4 w-4" />
+          </button>
+        </Link>
+      </div>
+    </div>
   );
 }
 

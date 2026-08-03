@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComicSoar · Editor + Preview</title>
+
+  <!-- Quill editor styles & JS -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+  <!-- DOMPurify for safe HTML rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
+
+  <style>
+    /* ----- reset & base ----- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f6f8fa;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      padding: 2rem 1.5rem;
+      color: #1e293b;
+    }
+
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ----- header ----- */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      gap: 1rem;
+    }
+
+    .app-header h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .badge {
+      background: #e2e8f0;
+      padding: 0.3rem 1rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #334155;
+    }
+
+    /* ----- two‑column layout ----- */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .split {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ----- cards ----- */
+    .card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid #e9edf2;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      padding: 0.9rem 1.5rem;
+      background: #fafbfc;
+      border-bottom: 1px solid #e9edf2;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #475569;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header .count {
+      font-weight: 400;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .card-body {
+      padding: 1.25rem 1.5rem 1.5rem;
+      flex: 1;
+    }
+
+    /* ----- Quill override ----- */
+    #editor-container {
+      min-height: 400px;
+      height: 100%;
+    }
+
+    .ql-toolbar.ql-snow {
+      border: none;
+      border-bottom: 1px solid #e9edf2;
+      padding: 0.5rem 1rem;
+      background: #fafbfc;
+    }
+
+    .ql-container.ql-snow {
+      border: none;
+      font-size: 0.95rem;
+      min-height: 350px;
+    }
+
+    .ql-editor {
+      min-height: 350px;
+      padding: 0.5rem 0.25rem;
+    }
+
+    .ql-editor:focus {
+      outline: none;
+    }
+
+    /* ----- preview pane ----- */
+    #preview {
+      min-height: 350px;
+      padding: 0.25rem 0.25rem 1rem;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: #0f172a;
+    }
+
+    #preview h1,
+    #preview h2,
+    #preview h3 {
+      margin: 1rem 0 0.5rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    #preview h1 {
+      font-size: 1.9rem;
+    }
+
+    #preview h2 {
+      font-size: 1.6rem;
+      border-bottom: 1px solid #e9edf2;
+      padding-bottom: 0.3rem;
+    }
+
+    #preview h3 {
+      font-size: 1.3rem;
+    }
+
+    #preview p {
+      margin: 0.75rem 0;
+    }
+
+    #preview ul,
+    #preview ol {
+      padding-left: 1.5rem;
+      margin: 0.5rem 0 1rem;
+    }
+
+    #preview li {
+      margin-bottom: 0.2rem;
+    }
+
+    #preview blockquote {
+      border-left: 4px solid #818cf8;
+      padding: 0.5rem 1rem;
+      margin: 0.75rem 0;
+      background: #f8fafc;
+      border-radius: 0 0.5rem 0.5rem 0;
+      color: #1e293b;
+    }
+
+    #preview blockquote p {
+      margin: 0;
+    }
+
+    #preview img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      margin: 0.5rem 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    #preview a {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    #preview a:hover {
+      color: #1d4ed8;
+    }
+
+    #preview figure {
+      margin: 0.75rem 0;
+    }
+
+    #preview figcaption {
+      font-size: 0.85rem;
+      color: #64748b;
+      text-align: center;
+      margin-top: 0.2rem;
+    }
+
+    /* empty state */
+    .empty-state {
+      color: #94a3b8;
+      font-style: italic;
+      text-align: center;
+      padding: 2.5rem 0;
+    }
+
+    /* ----- status bar ----- */
+    .status-bar {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      background: white;
+      border-radius: 0.75rem;
+      border: 1px solid #e9edf2;
+      font-size: 0.85rem;
+      color: #475569;
+    }
+
+    .status-bar .actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .btn {
+      background: #f1f5f9;
+      border: none;
+      padding: 0.4rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #1e293b;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-success {
+      background: #059669;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #047857;
+    }
+
+    .word-count {
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    /* toast notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #0f172a;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transform: translateY(1rem);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* inline code */
+    .ql-editor code,
+    #preview code {
+      background: #f1f5f9;
+      padding: 0.1rem 0.3rem;
+      border-radius: 0.25rem;
+      font-size: 0.85em;
+    }
+
+    /* ----- new: post metadata fields ----- */
+    .meta-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .meta-fields label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #475569;
+      display: block;
+      margin-bottom: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .meta-fields input,
+    .meta-fields select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e9edf2;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: white;
+      transition: border-color 0.15s;
+    }
+
+    .meta-fields input:focus,
+    .meta-fields select:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    @media (max-width: 600px) {
+      .meta-fields {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ----- new: save button and status ----- */
+    .save-area {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .save-status {
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    .save-status.saved {
+      color: #059669;
+    }
+
+    .btn-save {
+      background: #2563eb;
+      color: white;
+      padding: 0.5rem 1.5rem;
+      font-weight: 600;
+    }
+
+    .btn-save:hover {
+      background: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- header -->
+    <header class="app-header">
+      <h1>✎ ComicSoar · Editor + Preview</h1>
+      <span class="badge">HTML · live preview</span>
+    </header>
+
+    <!-- ===== NEW: Post Metadata ===== -->
+    <div class="meta-fields">
+      <div>
+        <label for="postTitle">Post Title</label>
+        <input type="text" id="postTitle" placeholder="Enter post title..." value="Welcome to ComicSoar">
+      </div>
+      <div>
+        <label for="postSlug">Slug (URL)</label>
+        <input type="text" id="postSlug" placeholder="url-friendly-slug" value="welcome-to-comicsoar">
+      </div>
+      <div>
+        <label for="postAuthor">Author Name</label>
+        <input type="text" id="postAuthor" placeholder="Your name" value="Team ComicSoar">
+      </div>
+      <div>
+        <label for="postProject">Project</label>
+        <select id="postProject">
+          <option value="product-a">Product A</option>
+          <option value="product-b">Product B</option>
+          <option value="product-c" selected>Product C</option>
+        </select>
+      </div>
+      <div>
+        <label for="postMetaDescription">Meta Description (SEO)</label>
+        <input type="text" id="postMetaDescription" placeholder="Brief description for search results..." value="A live HTML editor with preview for ComicSoar blog posts.">
+      </div>
+      <div>
+        <label for="postCoverImage">Cover Image URL</label>
+        <input type="url" id="postCoverImage" placeholder="https://example.com/cover.jpg" value="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&h=400&fit=crop">
+      </div>
+    </div>
+
+    <!-- two-column split -->
+    <div class="split">
+
+      <!-- EDITOR -->
+      <div class="card">
+        <div class="card-header">
+          <span>📝 Editor</span>
+          <span class="count" id="editorWordCount">0 words</span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div id="editor-container"></div>
+        </div>
+      </div>
+
+      <!-- PREVIEW -->
+      <div class="card">
+        <div class="card-header">
+          <span>👁️ Preview</span>
+          <span class="count" id="previewWordCount">0 words</span>
+        </div>
+        <div class="card-body">
+          <div id="preview">
+            <div class="empty-state">Start writing in the editor →</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- status bar -->
+    <div class="status-bar">
+      <div class="actions">
+        <button class="btn" id="clearBtn">🗑️ Clear</button>
+        <button class="btn" id="resetBtn">↩️ Reset example</button>
+      </div>
+      <div class="actions save-area">
+        <span class="save-status" id="saveStatus">Ready</span>
+        <button class="btn btn-save" id="saveBtn">💾 Save Post</button>
+        <button class="btn btn-primary" id="copyHtmlBtn">📋 Copy HTML</button>
+        <button class="btn btn-success" id="logHtmlBtn">🔍 Log HTML</button>
+      </div>
+    </div>
+
+    <!-- hidden field to store raw HTML (for demo) -->
+    <input type="hidden" id="storedHtml" value="">
+
+    <!-- toast -->
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // ----- DOM refs -----
+      const editorContainer = document.getElementById('editor-container');
+      const previewEl = document.getElementById('preview');
+      const editorWordCount = document.getElementById('editorWordCount');
+      const previewWordCount = document.getElementById('previewWordCount');
+      const storedHtmlInput = document.getElementById('storedHtml');
+      const saveStatus = document.getElementById('saveStatus');
+
+      // Meta fields
+      const postTitle = document.getElementById('postTitle');
+      const postSlug = document.getElementById('postSlug');
+      const postAuthor = document.getElementById('postAuthor');
+      const postProject = document.getElementById('postProject');
+      const postMetaDescription = document.getElementById('postMetaDescription');
+      const postCoverImage = document.getElementById('postCoverImage');
+
+      // ----- init Quill -----
+      const quill = new Quill(editorContainer, {
+        theme: 'snow',
+        placeholder: 'Write your blog post here …',
+        modules: {
+          toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'header': [1, 2, 3, false] }],
+            ['link', 'image'],
+            ['clean']
+          ]
+        }
+      });
+
+      // ----- sample content (HTML) -----
+      const exampleHtml = `
+        <h2>Welcome to ComicSoar</h2>
+        <p><strong>This is a live HTML preview.</strong> Everything you type in the editor appears here instantly.</p>
+        <ul>
+          <li>Write with <strong>bold</strong>, <em>italic</em>, or <u>underline</u>.</li>
+          <li>Add <a href="https://comicsoar.com" target="_blank">links</a> and images.</li>
+          <li>Use blockquotes, lists, and headings.</li>
+        </ul>
+        <blockquote>
+          <p>"A comic page isn't a single image; it's a sequence of beats."</p>
+          <p style="font-size:0.85rem; color:#64748b;">— Scott McCloud</p>
+        </blockquote>
+        <p><img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&h=400&fit=crop" alt="Person reading a comic on a tablet"></p>
+        <p style="font-size:0.85rem; color:#64748b; text-align:center;">Reading comics digitally · <a href="https://unsplash.com" target="_blank">Unsplash</a></p>
+      `;
+
+      // ----- set content -----
+      function setEditorContent(html) {
+        quill.clipboard.dangerouslyPasteHTML(html);
+        updatePreview();
+      }
+
+      // ----- update preview from editor -----
+      function updatePreview() {
+        const raw = quill.root.innerHTML;
+        // store raw HTML in hidden field (simulates saving to DB)
+        storedHtmlInput.value = raw;
+
+        // sanitize for safe display
+        const clean = DOMPurify.sanitize(raw, {
+          ADD_TAGS: ['iframe'],
+          ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling']
+        });
+
+        if (clean.trim() === '' || clean === '<p><br></p>' || clean === '<p><br class="ql-cursor"></p>') {
+          previewEl.innerHTML = `<div class="empty-state">✨ Start writing in the editor →</div>`;
+        } else {
+          previewEl.innerHTML = clean;
+        }
+
+        // update word counts
+        const text = quill.getText().trim();
+        const words = text ? text.split(/\s+/).length : 0;
+        editorWordCount.textContent = `${words} words`;
+        previewWordCount.textContent = `${words} words`;
+      }
+
+      // ----- event: editor changes -----
+      quill.on('text-change', function() {
+        updatePreview();
+      });
+
+      // ----- clear -----
+      document.getElementById('clearBtn').addEventListener('click', function() {
+        if (confirm('Clear all content?')) {
+          setEditorContent('');
+          showToast('Content cleared');
+        }
+      });
+
+      // ----- reset example -----
+      document.getElementById('resetBtn').addEventListener('click', function() {
+        setEditorContent(exampleHtml);
+        // Also reset meta fields to example values
+        postTitle.value = 'Welcome to ComicSoar';
+        postSlug.value = 'welcome-to-comicsoar';
+        postAuthor.value = 'Team ComicSoar';
+        postProject.value = 'product-c';
+        postMetaDescription.value = 'A live HTML editor with preview for ComicSoar blog posts.';
+        postCoverImage.value = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&h=400&fit=crop';
+        showToast('Example content loaded');
+      });
+
+      // ----- SAVE: gather all data and show what would be sent -----
+      document.getElementById('saveBtn').addEventListener('click', function() {
+        const data = {
+          title: postTitle.value.trim(),
+          slug: postSlug.value.trim() || postTitle.value.trim().toLowerCase().replace(/\s+/g, '-'),
+          author_name: postAuthor.value.trim() || 'Anonymous',
+          project_key: postProject.value,
+          meta_description: postMetaDescription.value.trim(),
+          cover_image_url: postCoverImage.value.trim(),
+          content: storedHtmlInput.value, // raw HTML from editor
+          status: 'published',
+          published_at: new Date().toISOString()
+        };
+
+        // Validate
+        if (!data.title) {
+          showToast('⚠️ Please enter a post title');
+          return;
+        }
+        if (!data.content || data.content === '<p><br></p>') {
+          showToast('⚠️ Please write some content');
+          return;
+        }
+
+        // Show what would be saved (simulate API call)
+        console.log('📦 POST DATA TO SAVE:');
+        console.log(JSON.stringify(data, null, 2));
+
+        // Show success status
+        saveStatus.textContent = '✅ Saved at ' + new Date().toLocaleTimeString();
+        saveStatus.className = 'save-status saved';
+        showToast('✅ Post saved! (Check console for data)');
+
+        // You would send this to your backend:
+        // await fetch('/api/posts', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(data)
+        // });
+      });
+
+      // ----- copy HTML -----
+      document.getElementById('copyHtmlBtn').addEventListener('click', function() {
+        const html = storedHtmlInput.value;
+        if (!html || html === '<p><br></p>') {
+          showToast('Nothing to copy — write some content first');
+          return;
+        }
+        navigator.clipboard.writeText(html).then(() => {
+          showToast('HTML copied to clipboard');
+        }).catch(() => {
+          // fallback
+          const textarea = document.createElement('textarea');
+          textarea.value = html;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showToast('HTML copied (fallback)');
+        });
+      });
+
+      // ----- log HTML (for debugging) -----
+      document.getElementById('logHtmlBtn').addEventListener('click', function() {
+        const html = storedHtmlInput.value;
+        console.log('=== Stored HTML ===');
+        console.log(html || '(empty)');
+        console.log('===================');
+        showToast('HTML logged to console (F12)');
+      });
+
+      // ----- toast helper -----
+      let toastTimeout = null;
+
+      function showToast(message) {
+        const el = document.getElementById('toast');
+        el.textContent = message;
+        el.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          el.classList.remove('show');
+        }, 2200);
+      }
+
+      // ----- Auto-generate slug from title -----
+      postTitle.addEventListener('input', function() {
+        // Only auto-fill if slug is empty or matches the previous auto-generated value
+        const currentSlug = postSlug.value;
+        const autoSlug = this.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        if (!currentSlug || currentSlug === postSlug.dataset.autoGenerated) {
+          postSlug.value = autoSlug;
+          postSlug.dataset.autoGenerated = autoSlug;
+        }
+      });
+
+      // Store initial auto-generated slug
+      postSlug.dataset.autoGenerated = postSlug.value;
+
+      // ----- load example on start -----
+      setEditorContent(exampleHtml);
+
+      // log initial state
+      console.log('📝 ComicSoar Editor + Preview ready');
+    })();
+  </script>
+
+</body>
+</html>
